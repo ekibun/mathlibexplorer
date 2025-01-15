@@ -1,6 +1,6 @@
+import './index.css';
 import React, { useRef, useEffect, useMemo } from 'react';
 import Visualizer from './core/visualizer';
-import { round } from 'three/tsl';
 
 export default (props) => {
   const { state, setState } = props;
@@ -18,14 +18,23 @@ export default (props) => {
   const { labels, cats } = useMemo(() => {
     const visualizerCurrent = visualizer.current;
     if (visualizerCurrent) {
+      const set = new Set();
       const hit = state.graph.hit && state.graph.nodes[state.graph.hit];
-      const pick = Array.isArray(state.graph.pick) || state.graph.pick === hit ? undefined : state.graph.pick;
+      if(hit) set.add(hit);
+      if(state.graph.pick && !Array.isArray(state.graph.pick)) set.add(state.graph.pick);
+      const labelsize = 30 / state.camera.scale;
+      state.graph.nodes.forEach((n) => {
+        if(n.size > labelsize) set.add(n);
+      });
       const cats = state.graph.cats;
       return {
-        labels: [hit, pick].map((v) => {
-          if (v) return {
+        labels: set.values().map((v) => {
+          if (!v) return;
+          const pos = visualizerCurrent.scene.camera.project([v.x, v.y, 0]);
+          if(pos[0] < 0 || pos[1] < 0 || pos[0] > state.camera.width || pos[1] > state.camera.height) return;
+          return {
             name: v.name,
-            pos: visualizerCurrent.scene.camera.project([v.x, v.y, 0])
+            pos: pos
           };
         }).filter(v => v),
         cats: Object.keys(cats ?? {}).map((key) => {
@@ -48,7 +57,14 @@ export default (props) => {
         ref={canvas}
       />
       <div
-        {...Object.assign({}, ...['onWheel', 'onClick', 'onPointerMove'].map((key) => ({
+        {...Object.assign({}, ...[
+          'onWheel', 
+          'onClick', 
+          'onPointerMove',
+          'onTouchStart',
+          'onTouchMove',
+          'onTouchEnd'
+        ].map((key) => ({
           [key]: (event) => {
             const current = visualizer.current;
             if (current && current[key]) return current[key](event);
@@ -64,35 +80,26 @@ export default (props) => {
         }}>
         {cats &&
           cats.map((cat) => (
-            <pre key={cat.name} style={{
-              position: 'absolute',
+            <pre key={cat.name} className='label cat' style={{
               left: `${Math.round(cat.pos[0])}px`,
               top: `${Math.round(cat.pos[1])}px`,
-              transform: 'translate(-50%, -50%)',
-              fontFamily: 'Arial',
-              margin: '0',
-              color: 'white',
-              backgroundColor: '#000c',
             }} onClick={(event) => {
               const current = visualizer.current;
-              console.log(cat);
               if (current) {
                 current.toggleHit(cat.nodes);
               }
               event.stopPropagation();
-            }}>{cat.name}</pre>
+            }}
+            onMouseMove={(() => {
+              const current = visualizer.current;
+              current?.scene.updateStatus({ graph: { hit: undefined } });
+            })}
+            >{cat.name}</pre>
           ))}
-        {labels && labels.map((hit) => (
-          <pre style={{
-            position: 'absolute',
-            pointerEvents: 'none',
+        {labels && labels.map((hit, i) => (
+          <pre key={i} className='label node' style={{
             left: `${Math.round(hit.pos[0])}px`,
             top: `${Math.round(hit.pos[1])}px`,
-            transform: 'translateY(-50%)',
-            fontFamily: 'Arial',
-            margin: '0',
-            color: 'white',
-            backgroundColor: '#000c',
           }}>{hit.name}</pre>
         ))}
 

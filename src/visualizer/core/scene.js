@@ -24,7 +24,7 @@ export default class Scene {
       ...this.graph.status,
       ...graph
     }
-    this.graph.status.uniforms.scale.value = this.camera.status.scale;
+    this.graph.status.uniforms.scale.value = this.camera.status.scale * this.camera.status.pixelRatio;
     if (!preventState) this.setState({
       camera: this.camera.status,
       graph: this.graph.status

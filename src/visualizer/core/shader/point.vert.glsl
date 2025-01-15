@@ -17,7 +17,7 @@ void main() {
     vColor = color;
     vAlpha = alpha;
 
-    vec4 mvPosition = modelViewMatrix * vec4(position.xy, 0.5, 1.0);
+    vec4 mvPosition = modelViewMatrix * vec4(position.xy, 0.0, 1.0);
 
     gl_PointSize = position.z * min(scale, 10.0) * 3.0;
     if(!picking) gl_PointSize = gl_PointSize * 1.5;

@@ -59,39 +59,6 @@ export default class Visualizer {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  // /**
-  //  * @param { PointerEvent } event
-  //  */
-  // onPointerDown(event) {
-  //   if (event.pointerType === 'mouse' && event.button == 0) {
-  //     this.down = {
-  //       x: event.clientX,
-  //       y: event.clientY,
-  //       t: Date.now()
-  //     };
-  //   }
-  //   if (event.pointerType === 'touch') {
-  //     if (event.isPrimary) {
-  //       this.down = {
-  //         x: event.clientX,
-  //         y: event.clientY,
-  //         t: Date.now()
-  //       };
-  //       // 当第一个触摸点按下时，记录起始信息
-  //       this.initialDistance = 0;
-  //       this.isZooming = false;  // 重置缩放状态
-  //     } else {
-  //       // 当第二个触摸点按下时，开始计算缩放
-  //       this.down = {};
-  //       this.isZooming = true;
-  //       this.initialDistance = this.getDistance(event, event.target);
-  //       console.log(this.initialDistance);
-  //     }
-  //   }
-  //   return true;
-  // }
-
-  // down = {}
   hitInfo = {}
 
   toggleHit(newHit) {
@@ -104,27 +71,23 @@ export default class Visualizer {
       }
     }
     const isArray = Array.isArray(newHit);
-    if(!newHit) {
-      this.scene.graph.setAlpha([], 1.0, true);
+    if (!newHit) {
+      this.scene.graph.setAlpha();
     } else switch (this.hitInfo.mode) {
       case 0:
-        this.scene.graph.setAlpha([], 1.0, true);
+        this.scene.graph.setAlpha();
         break;
       case 1:
         this.scene.graph.setAlpha(
-          isArray ? newHit : [
-            newHit.index, ...newHit.from, ...newHit.to
-          ], 0.1, true);
+          this.scene.graph.getRelates(isArray ? newHit : [newHit.index], !isArray, !isArray, false));
         break;
       case 2:
         this.scene.graph.setAlpha(
-          this.scene.graph.getRelates(isArray ? newHit : [newHit.index], false, true),
-          0.1, true);
+          this.scene.graph.getRelates(isArray ? newHit : [newHit.index], false, true, !isArray));
         break;
       case 3:
         this.scene.graph.setAlpha(
-          this.scene.graph.getRelates(isArray ? newHit : [newHit.index], true, false),
-          0.1, true);
+          this.scene.graph.getRelates(isArray ? newHit : [newHit.index], true, false, !isArray));
         break;
     }
     this.scene.updateStatus({ graph: { pick: this.hitInfo.mode ? newHit : undefined } });
@@ -152,8 +115,10 @@ export default class Visualizer {
       this.scene.updateStatus({ camera: { x: x - dx / scale, y: y + dy / scale } });
       return true;
     }
-    const p = this.scene.pick(this.renderer, event.clientX, event.clientY);
-    this.scene.updateStatus({ graph: { hit: p } });
+    if (event.pointerType === 'mouse') {
+      const p = this.scene.pick(this.renderer, event.clientX, event.clientY);
+      this.scene.updateStatus({ graph: { hit: p } });
+    }
     return false;
   }
 
@@ -169,4 +134,47 @@ export default class Visualizer {
       }
     });
   }
+
+  /**
+   * @param { TouchEvent } event
+   */
+  onTouchStart(e) {
+    if (e.touches.length === 2) {
+      this.isTouching = true;
+      this.lastDist = getDistance(e.touches[0], e.touches[1]);
+    }
+  }
+
+  /**
+ * @param { TouchEvent } event
+ */
+  onTouchMove(e) {
+    if (this.isTouching && e.touches.length === 2) {
+      const newDist = getDistance(e.touches[0], e.touches[1]);
+      const status = this.scene.camera.status;
+      const scale = status.scale * newDist / this.lastDist;
+      this.scene.updateStatus({
+        camera: {
+          scale: scale
+        }
+      });
+
+      this.lastDist = newDist; // 更新最后一次触摸的距离
+    }
+  }
+
+  /**
+  * @param { TouchEvent } event
+  */
+  onTouchEnd(e) {
+    if (e.touches.length < 2) {
+      this.isTouching = false;
+    }
+  }
+}
+
+function getDistance(touch1, touch2) {
+  const dx = touch2.clientX - touch1.clientX;
+  const dy = touch2.clientY - touch1.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
 }

@@ -1,0 +1,20 @@
+pre.cat:hover {
+  scale: 1.2;
+}
+
+pre.label {
+  position: absolute;
+  font-family: Arial;
+  margin: 0;
+  color: white;
+  background-color: #000c;
+}
+
+pre.node {
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+pre.cat {
+  transform: translate(-50%, -50%);
+}
