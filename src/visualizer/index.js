@@ -15,24 +15,26 @@ export default (props) => {
     };
   }, [setState]);
 
-  const { labels, cats } = useMemo(() => {
+  const { labels, cats, pick } = useMemo(() => {
     const visualizerCurrent = visualizer.current;
     if (visualizerCurrent) {
       const set = new Set();
-      const hit = state.graph.hit && state.graph.nodes[state.graph.hit];
-      if(hit) set.add(hit);
-      if(state.graph.pick && !Array.isArray(state.graph.pick)) set.add(state.graph.pick);
       const labelsize = 30 / state.camera.scale;
       state.graph.nodes.forEach((n) => {
-        if(n.size > labelsize) set.add(n);
+        if (n.size > labelsize) set.add(n);
       });
+      const setArray = Array.from(set);
+      const hit = state.graph.hit && state.graph.nodes[state.graph.hit];
+      if (hit) setArray.push(hit);
+      if (state.graph.pick && !Array.isArray(state.graph.pick)) setArray.push(state.graph.pick);
       const cats = state.graph.cats;
       return {
-        labels: set.values().map((v) => {
+        labels: setArray.map((v) => {
           if (!v) return;
           const pos = visualizerCurrent.scene.camera.project([v.x, v.y, 0]);
-          if(pos[0] < 0 || pos[1] < 0 || pos[0] > state.camera.width || pos[1] > state.camera.height) return;
+          if (pos[0] < 0 || pos[1] < 0 || pos[0] > state.camera.width || pos[1] > state.camera.height) return;
           return {
+            cat: v.cat,
             name: v.name,
             pos: pos
           };
@@ -44,7 +46,8 @@ export default (props) => {
             nodes: cat.nodes,
             pos: visualizerCurrent.scene.camera.project([cat.sumx / cat.sumsize, cat.sumy / cat.sumsize, 0])
           }
-        })
+        }),
+        pick: state.graph?.pick?.name ? state.graph.pick : undefined
       }
     }
     return {};
@@ -58,8 +61,8 @@ export default (props) => {
       />
       <div
         {...Object.assign({}, ...[
-          'onWheel', 
-          'onClick', 
+          'onWheel',
+          'onClick',
           'onPointerMove',
           'onTouchStart',
           'onTouchMove',
@@ -80,7 +83,7 @@ export default (props) => {
         }}>
         {cats &&
           cats.map((cat) => (
-            <pre key={cat.name} className='label cat' style={{
+            <div key={cat.name} className='label cat' style={{
               left: `${Math.round(cat.pos[0])}px`,
               top: `${Math.round(cat.pos[1])}px`,
             }} onClick={(event) => {
@@ -90,20 +93,30 @@ export default (props) => {
               }
               event.stopPropagation();
             }}
-            onMouseMove={(() => {
-              const current = visualizer.current;
-              current?.scene.updateStatus({ graph: { hit: undefined } });
-            })}
-            >{cat.name}</pre>
+              onMouseMove={(() => {
+                const current = visualizer.current;
+                current?.scene.updateStatus({ graph: { hit: undefined } });
+              })}
+            >{cat.name}</div>
           ))}
         {labels && labels.map((hit, i) => (
-          <pre key={i} className='label node' style={{
+          <div key={i} className='label node' style={{
             left: `${Math.round(hit.pos[0])}px`,
             top: `${Math.round(hit.pos[1])}px`,
-          }}>{hit.name}</pre>
+          }}>
+            <div>{hit.name}</div>
+            <div className='infocat'>{hit.cat}</div>
+          </div>
         ))}
-
       </div>
+      {
+        pick && (
+          <div className='info'>
+              <div className='infofunc'>{pick.name}</div>
+              <div className='infocat'>{pick.cat} | {pick.from.length} ref | {pick.to.length} used</div>
+          </div>
+        )
+      }
     </>
   );
 };

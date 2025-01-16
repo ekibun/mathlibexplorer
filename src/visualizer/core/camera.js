@@ -12,7 +12,7 @@ export default class Camera extends THREE.OrthographicCamera {
     yrange: [0,0],
   }
   constructor() {
-    super(-1, 1, 1, -1, -1, 1);
+    super(-1, 1, 1, -1, -10, 10);
   }
 
   /**

@@ -6,6 +6,9 @@ export default class Visualizer {
     const loop = () => {
       if (this._isDestroy) return;
       this.resize();
+      if(this.scene.graph.animate()) {
+        this.scene._needRender = true;
+      };
       this.render();
       requestAnimationFrame(loop);
     };
@@ -91,7 +94,6 @@ export default class Visualizer {
         break;
     }
     this.scene.updateStatus({ graph: { pick: this.hitInfo.mode ? newHit : undefined } });
-    this.scene._needRender = true;
   }
 
   /**

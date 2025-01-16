@@ -1,20 +1,44 @@
-pre.cat:hover {
+div.cat:hover {
   scale: 1.2;
 }
 
-pre.label {
+div.label {
   position: absolute;
   font-family: Arial;
-  margin: 0;
   color: white;
-  background-color: #000c;
+  background-color: #0008;
 }
 
-pre.node {
+div.node {
   pointer-events: none;
   transform: translateY(-50%);
 }
 
-pre.cat {
+div.cat {
+  font-size: larger;
   transform: translate(-50%, -50%);
+}
+
+div.info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  color: white;
+  background-color: #8888;
+  max-height: 100px;
+  overflow-y: auto;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: Arial;
+  user-select: none;
+}
+
+div.infofunc {
+  font-size: larger;
+}
+
+div.infocat {
+  font-size: small;
+  opacity: 0.6;
 }

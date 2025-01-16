@@ -4,6 +4,9 @@ import rawgraph from '../import_graph.txt';
 import pointVertShader from './shader/point.vert.glsl';
 import pointFragShader from './shader/point.frag.glsl';
 
+import pickVertShader from './shader/pick.vert.glsl';
+import pickFragShader from './shader/pick.frag.glsl';
+
 import linkVertShader from './shader/link.vert.glsl';
 import linkFragShader from './shader/link.frag.glsl';
 
@@ -13,14 +16,15 @@ export default class GraphGroup extends THREE.Group {
       scale: {
         value: 1.0
       },
-      picking: {
-        value: false
+      pixelRatio: {
+        value: 1.0
       }
     },
     hit: undefined
   }
   constructor(scene) {
     super();
+    this.picking = new THREE.Group();
     this.initGraph(rawgraph);
     const pointGeometry = this.pointGeometry;
     const xrange = [pointGeometry.boundingBox.min.x, pointGeometry.boundingBox.max.x];
@@ -34,13 +38,22 @@ export default class GraphGroup extends THREE.Group {
     this.setAlpha();
   }
 
+  pickMaterial = new THREE.RawShaderMaterial({
+    uniforms: this.status.uniforms,
+    vertexShader: pickVertShader,
+    fragmentShader: pickFragShader,
+    glslVersion: THREE.GLSL3,
+    depthTest: true,
+    depthWrite: true
+  });
+
   pointMaterial = new THREE.RawShaderMaterial({
     uniforms: this.status.uniforms,
     vertexShader: pointVertShader,
     fragmentShader: pointFragShader,
     glslVersion: THREE.GLSL3,
-    depthTest: false,
-    depthWrite: false,
+    depthTest: true,
+    depthWrite: true,
     blending: THREE.CustomBlending,
     blendEquation: THREE.MaxEquation,
     blendSrc: THREE.OneFactor,
@@ -75,17 +88,35 @@ export default class GraphGroup extends THREE.Group {
 
   setAlpha([nodes, links] = []) {
     const reset = !nodes || !links;
-    const defaultAlpha = reset ? 0.8 : 0.1
+    const defaultAlpha = reset ? 0.8 : 0.2
     const showLines = !reset;
     const pointAlpha = this.status.nodes.map(() => defaultAlpha);
     nodes?.forEach((i) => {
       pointAlpha[i] = 1.0;
     });
-    this.pointGeometry.setAttribute('alpha', new THREE.BufferAttribute(new Float32Array(pointAlpha), 1));
-    this.status.links.forEach((_, i) => {
-      const alpha = showLines && links.includes(i) ? 1.0 : defaultAlpha * 0.05;
-      this.linkUniforms[i].value = alpha;
+    const lineAlpha = this.status.links.map((_, i) => defaultAlpha * 0.05);
+    if(showLines) links?.forEach((i) => {
+      lineAlpha[i] = 1.0;
     });
+
+    const begin = Date.now();
+    this.animateAlpha = () => {
+      const delta = Math.min(1, (Date.now() - begin)/500);
+      const pointAttribute = this.pointGeometry.getAttribute('alpha');
+      pointAlpha.forEach((v, i) => {
+        pointAttribute.array[i] = pointAttribute.array[i] * (1 - delta) + delta * v;
+      });
+      pointAttribute.needsUpdate = true;
+      this.linkUniforms.forEach((v, i) => {
+        v.value = v.value * (1 - delta) + delta * lineAlpha[i];
+      });
+      if (delta === 1) this.animateAlpha = undefined;
+      return true;
+    };
+  }
+
+  animate() {
+    if(this.animateAlpha) return this.animateAlpha();
   }
 
   /**
@@ -114,7 +145,8 @@ export default class GraphGroup extends THREE.Group {
       };
       const node = {
         index: i,
-        name: `${cat}\n${func.join('.')}`,
+        cat,
+        name: func.join('.'),
         color: new THREE.Color(color).convertLinearToSRGB(),
         from: [],
         to: [],
@@ -139,10 +171,12 @@ export default class GraphGroup extends THREE.Group {
     });
     const pointGeometry = new THREE.BufferGeometry();
     pointGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pointVerts), 3));
+    pointGeometry.setAttribute('alpha', new THREE.BufferAttribute(new Float32Array(nodes.length), 1));
     pointGeometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(pointColors), 4));
     pointGeometry.computeBoundingBox();
     this.pointGeometry = pointGeometry;
     this.add(new THREE.Points(pointGeometry, this.pointMaterial));
+    this.picking.add(new THREE.Points(pointGeometry, this.pickMaterial));
 
     const lineSplit = 20;
 
@@ -173,9 +207,7 @@ export default class GraphGroup extends THREE.Group {
       const linkGeometry = new THREE.BufferGeometry();
       linkGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linkVerts), 3));
       linkGeometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(linkColors), 3));
-      const alpha = {
-        value: 1.0
-      }
+      const alpha = { value: 0 }
       linkUniforms[i] = alpha;
       this.add(new THREE.Line(linkGeometry, new THREE.RawShaderMaterial({
         uniforms: {
