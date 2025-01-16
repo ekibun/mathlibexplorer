@@ -9,6 +9,10 @@ div.label {
   background-color: #0008;
 }
 
+span.katex-html {
+  display: none;
+}
+
 div.node {
   pointer-events: none;
   transform: translateY(-50%);
@@ -25,20 +29,45 @@ div.info {
   left: 0;
   color: white;
   background-color: #8888;
-  max-height: 100px;
-  overflow-y: auto;
+  overflow: none;
   margin: 10px;
   padding: 10px;
   border-radius: 10px;
   font-family: Arial;
-  user-select: none;
+  backdrop-filter: blur(20px);
 }
 
 div.infofunc {
+  color: white;
   font-size: larger;
+}
+a {
+  text-decoration:none
 }
 
 div.infocat {
   font-size: small;
   opacity: 0.6;
+  margin-bottom: 10px;
+}
+
+div.infomd {
+  overflow: auto;
+}
+
+@media screen and (orientation: landscape) {
+  div.infomd {
+    max-height: 200px;
+    max-width: 400px;
+  }
+}
+
+@media screen and (orientation: portrait) {
+  div.info {
+    max-width: calc(100% - 40px);
+    overflow-x: hidden;
+  }
+  div.infomd {
+    max-height: 200px;
+  }
 }

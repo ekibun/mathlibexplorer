@@ -1,6 +1,35 @@
 import { WebGLRenderer } from 'three';
 import Scene from './scene';
 
+export const tree = 'eec581e576bee4a9c19a608976f8a1e87c5b6ed5';
+
+function getDoc(code) {
+  const regex = /(-\/|\/-[\-!]?)/g;
+  let depth = 0;
+  let lastBegin = -1;
+  let ret = "";
+  let match;
+  while ((match = regex.exec(code)) !== null) {
+    console.log(match);
+    switch (match[0]) {
+      case '-/':
+        depth -= 1;
+        if(depth === 0 && lastBegin > -1){
+          ret += code.substring(lastBegin, match.index);
+          lastBegin = match.index + match[0].length;
+        }
+        break;
+      default:
+        if(depth === 0){
+          lastBegin = match[0] == '/-!' ? match.index + match[0].length : -1;
+        }
+        depth +=1;
+        break;
+    }
+  }
+  return ret;
+}
+
 export default class Visualizer {
   startRenderLoop() {
     const loop = () => {
@@ -72,6 +101,13 @@ export default class Visualizer {
         hit: newHit,
         mode: 1
       }
+      if(newHit?.path && !newHit?.markdown) fetch(`https://raw.githubusercontent.com/leanprover-community/mathlib4/${tree}/${newHit.path}.lean`).then(
+        async (rsp) => {
+          const text = await rsp.text();
+          newHit.markdown = getDoc(text).trim();
+          this.scene.updateStatus({ graph: { pick: this.hitInfo.mode ? newHit : undefined } });
+        }
+      );
     }
     const isArray = Array.isArray(newHit);
     if (!newHit) {
@@ -101,7 +137,7 @@ export default class Visualizer {
    */
   onClick(event) {
     const p = this.scene.pick(this.renderer, event.clientX, event.clientY);
-    this.toggleHit(p && this.scene.graph.status.nodes[p]);
+    this.toggleHit(p === undefined ? undefined : this.scene.graph.status.nodes[p]);
   }
 
   /**

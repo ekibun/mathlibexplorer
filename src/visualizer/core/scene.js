@@ -57,6 +57,6 @@ export default class Scene {
     renderer.readRenderTargetPixels(this.pickingTexture, 0, 0, 1, 1, pixelBuffer);
     this.camera.setViewOffset(this.camera.status.width, this.camera.status.height, 0, 0, this.camera.status.width, this.camera.status.height);
     renderer.setRenderTarget(null);
-    if (pixelBuffer[3]) return pixelBuffer[0];
+    if (pixelBuffer[1]) return pixelBuffer[0];
   }
 }
