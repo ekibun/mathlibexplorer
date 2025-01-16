@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/mathlibexplorer/static/css/main.d2f6c84a.css",
-    "main.js": "/mathlibexplorer/static/js/main.d3e281ba.js",
+    "main.js": "/mathlibexplorer/static/js/main.459a1d23.js",
     "static/js/488.3574ce12.chunk.js": "/mathlibexplorer/static/js/488.3574ce12.chunk.js",
     "index.html": "/mathlibexplorer/index.html",
     "main.d2f6c84a.css.map": "/mathlibexplorer/static/css/main.d2f6c84a.css.map",
-    "main.d3e281ba.js.map": "/mathlibexplorer/static/js/main.d3e281ba.js.map",
+    "main.459a1d23.js.map": "/mathlibexplorer/static/js/main.459a1d23.js.map",
     "488.3574ce12.chunk.js.map": "/mathlibexplorer/static/js/488.3574ce12.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.d2f6c84a.css",
-    "static/js/main.d3e281ba.js"
+    "static/js/main.459a1d23.js"
   ]
 }
