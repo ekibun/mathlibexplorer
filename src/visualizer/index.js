@@ -15,7 +15,7 @@ function getPickInfo(state) {
     return {
       name: node.cat || node.name,
       cat: `${pick.length} elems`,
-      path: node.path.replace(/\/[^/]+$/, '')
+      path: node.path.split("/").slice(0,2).join("/")
     }
   }
   if(pick.name) {
