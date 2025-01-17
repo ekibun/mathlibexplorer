@@ -147,7 +147,7 @@ export default class GraphGroup extends THREE.Group {
         index: i,
         cat: func.length ? cat : '',
         name: func.length ? func.join('.') : cat,
-        path: name.replaceAll('.', '/'),
+        path: name.replaceAll('.', '/')+".lean",
         color: new THREE.Color(color).convertLinearToSRGB(),
         from: [],
         to: [],

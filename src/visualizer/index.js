@@ -5,6 +5,26 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Visualizer, { tree } from './core/visualizer';
 import { AiOutlineLink } from "react-icons/ai";
 import Markdown from 'react-markdown';
+import 'katex/dist/katex.min.css'
+
+function getPickInfo(state) {
+  const pick = state.graph?.pick;
+  if(!pick) return;
+  if(Array.isArray(pick) && pick.length > 0) {
+    const node = state.graph.nodes[pick[0]]
+    return {
+      name: node.cat || node.name,
+      cat: `${pick.length} elems`,
+      path: node.path.replace(/\/[^/]+$/, '')
+    }
+  }
+  if(pick.name) {
+    return {
+      ...pick,
+      cat: `${pick.cat} | ${pick.from.length} ref | ${pick.to.length} use`
+    }
+  }
+}
 
 export default () => {
   const [state, setState] = useState({});
@@ -51,7 +71,7 @@ export default () => {
             pos: visualizerCurrent.scene.camera.project([cat.sumx / cat.sumsize, cat.sumy / cat.sumsize, 0])
           }
         }),
-        pick: state.graph?.pick?.name ? state.graph.pick : undefined
+        pick: getPickInfo(state)
       }
     }
     return {};
@@ -116,10 +136,10 @@ export default () => {
       {
         pick && (
           <div className='info'>
-            <a href={`https://github.com/leanprover-community/mathlib4/blob/${tree}/${pick.path}.lean`} target='_blank'>
+            <a href={`https://github.com/leanprover-community/mathlib4/blob/${tree}/${pick.path}`} target='_blank'>
               <div className='infofunc'><AiOutlineLink />{pick.name}</div>
             </a>
-            <div className='infocat'>{pick.cat} | {pick.from.length} ref | {pick.to.length} used</div>
+            <div className='infocat'>{pick.cat}</div>
             <div className='infomd'>
               <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                 {pick.markdown}

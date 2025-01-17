@@ -7,7 +7,6 @@ function getDoc(code) {
   const regex = /(-\/|\/-[\-!]?)/g;
   let depth = 0;
   let lastBegin = -1;
-  let ret = "";
   let match;
   while ((match = regex.exec(code)) !== null) {
     console.log(match);
@@ -15,8 +14,7 @@ function getDoc(code) {
       case '-/':
         depth -= 1;
         if(depth === 0 && lastBegin > -1){
-          ret += code.substring(lastBegin, match.index);
-          lastBegin = match.index + match[0].length;
+          return code.substring(lastBegin, match.index);
         }
         break;
       default:
@@ -27,7 +25,7 @@ function getDoc(code) {
         break;
     }
   }
-  return ret;
+  return "";
 }
 
 export default class Visualizer {
@@ -101,7 +99,7 @@ export default class Visualizer {
         hit: newHit,
         mode: 1
       }
-      if(newHit?.path && !newHit?.markdown) fetch(`https://raw.githubusercontent.com/leanprover-community/mathlib4/${tree}/${newHit.path}.lean`).then(
+      if(newHit?.path && !newHit?.markdown) fetch(`https://raw.githubusercontent.com/leanprover-community/mathlib4/${tree}/${newHit.path}`).then(
         async (rsp) => {
           const text = await rsp.text();
           newHit.markdown = getDoc(text).trim();

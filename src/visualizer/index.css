@@ -3,14 +3,11 @@ div.cat:hover {
 }
 
 div.label {
+  opacity: 0.8;
   position: absolute;
   font-family: Arial;
   color: white;
   background-color: #0008;
-}
-
-span.katex-html {
-  display: none;
 }
 
 div.node {
