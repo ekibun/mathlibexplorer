@@ -9,7 +9,6 @@ function getDoc(code) {
   let lastBegin = -1;
   let match;
   while ((match = regex.exec(code)) !== null) {
-    console.log(match);
     switch (match[0]) {
       case '-/':
         depth -= 1;
@@ -151,7 +150,7 @@ export default class Visualizer {
       this.scene.updateStatus({ camera: { x: x - dx / scale, y: y + dy / scale } });
       return true;
     }
-    if (event.pointerType === 'mouse') {
+    if (event.pointerType === 'mouse' && event.buttons === 0) {
       const p = this.scene.pick(this.renderer, event.clientX, event.clientY);
       this.scene.updateStatus({ graph: { hit: p } });
     }

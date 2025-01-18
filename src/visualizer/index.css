@@ -26,7 +26,7 @@ div.info {
   left: 0;
   color: white;
   background-color: #8888;
-  overflow: none;
+  overflow: hidden;
   margin: 10px;
   padding: 10px;
   border-radius: 10px;

@@ -69,7 +69,7 @@ export default class GraphGroup extends THREE.Group {
       node.from.forEach((j) => {
         if (retLink.includes(j)) return;
         const relNode = this.status.links[j][0];
-        if (from || retNode.includes(relNode)) retLink.push(j);
+        if (from || _nodes.includes(relNode)) retLink.push(j);
         if (!from || retNode.includes(relNode)) return;
         retNode.push(relNode);
         if (iter) stack.push(relNode);
@@ -77,7 +77,7 @@ export default class GraphGroup extends THREE.Group {
       node.to.forEach((j) => {
         if (retLink.includes(j)) return;
         const relNode = this.status.links[j][1];
-        if (to || retNode.includes(relNode)) retLink.push(j);
+        if (to || _nodes.includes(relNode)) retLink.push(j);
         if (!to || retNode.includes(relNode)) return;
         retNode.push(relNode);
         if (iter) stack.push(relNode);
@@ -95,28 +95,34 @@ export default class GraphGroup extends THREE.Group {
       pointAlpha[i] = 1.0;
     });
     const lineAlpha = this.status.links.map((_, i) => defaultAlpha * 0.05);
-    if(showLines) links?.forEach((i) => {
+    if (showLines) links?.forEach((i) => {
       lineAlpha[i] = 1.0;
     });
 
     const begin = Date.now();
     this.animateAlpha = () => {
-      const delta = Math.min(1, (Date.now() - begin)/500);
+      const delta = Math.min(1, (Date.now() - begin) / 500);
       const pointAttribute = this.pointGeometry.getAttribute('alpha');
       pointAlpha.forEach((v, i) => {
         pointAttribute.array[i] = pointAttribute.array[i] * (1 - delta) + delta * v;
       });
       pointAttribute.needsUpdate = true;
-      this.linkUniforms.forEach((v, i) => {
-        v.value = v.value * (1 - delta) + delta * lineAlpha[i];
+      const linkAttribute = this.linkGeometry.getAttribute('alpha');
+      const linePointCount = linkAttribute.array.length / lineAlpha.length;
+      lineAlpha.forEach((v, i) => {
+        const newValue = linkAttribute.array[linePointCount * i] * (1 - delta) + delta * v;
+        for(var k = 0; k < linePointCount; ++k) {
+          linkAttribute.array[linePointCount * i + k] = newValue;
+        }
       });
+      linkAttribute.needsUpdate = true;
       if (delta === 1) this.animateAlpha = undefined;
       return true;
     };
   }
 
   animate() {
-    if(this.animateAlpha) return this.animateAlpha();
+    if (this.animateAlpha) return this.animateAlpha();
   }
 
   /**
@@ -147,7 +153,7 @@ export default class GraphGroup extends THREE.Group {
         index: i,
         cat: func.length ? cat : '',
         name: func.length ? func.join('.') : cat,
-        path: name.replaceAll('.', '/')+".lean",
+        path: name.replaceAll('.', '/') + ".lean",
         color: new THREE.Color(color).convertLinearToSRGB(),
         from: [],
         to: [],
@@ -180,54 +186,48 @@ export default class GraphGroup extends THREE.Group {
     this.picking.add(new THREE.Points(pointGeometry, this.pickMaterial));
 
     const lineSplit = 20;
-
-    const linkUniforms = [];
-
+    const linkVerts = [];
+    const linkColors = [];
     links.forEach((link, i) => {
       const from = nodes[link[0]];
       const to = nodes[link[1]];
       from.to.push(i);
       to.from.push(i);
 
-      const linkVerts = [];
-      const linkColors = [];
       for (var j = 0; j < lineSplit; ++j) {
         const x = j / (lineSplit - 1);
         const y = (1 - Math.cos(x * Math.PI)) / 2;
-        linkVerts.push(
-          from.x + x * (to.x - from.x),
-          from.y + y * (to.y - from.y),
-          0
-        )
-        linkColors.push(
-          from.color.r + x * (to.color.r - from.color.r),
-          from.color.g + x * (to.color.g - from.color.g),
-          from.color.b + x * (to.color.b - from.color.b),
-        );
+        for(var k = 0 ; k < (j > 0 && j < lineSplit - 1 ? 2 : 1); ++k) {
+          linkVerts.push(
+            from.x + x * (to.x - from.x),
+            from.y + y * (to.y - from.y),
+            0
+          );
+          linkColors.push(
+            from.color.r + x * (to.color.r - from.color.r),
+            from.color.g + x * (to.color.g - from.color.g),
+            from.color.b + x * (to.color.b - from.color.b),
+          );
+        }
       }
-      const linkGeometry = new THREE.BufferGeometry();
-      linkGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linkVerts), 3));
-      linkGeometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(linkColors), 3));
-      const alpha = { value: 0 }
-      linkUniforms[i] = alpha;
-      this.add(new THREE.Line(linkGeometry, new THREE.RawShaderMaterial({
-        uniforms: {
-          ...this.status.uniforms,
-          alpha
-        },
-        vertexShader: linkVertShader,
-        fragmentShader: linkFragShader,
-        side: THREE.DoubleSide,
-        glslVersion: THREE.GLSL3,
-        depthTest: false,
-        depthWrite: false,
-        blending: THREE.CustomBlending,
-        blendEquation: THREE.MaxEquation,
-        blendSrc: THREE.OneFactor,
-        blendDst: THREE.OneFactor
-      })));
     });
-    this.linkUniforms = linkUniforms;
+    const linkGeometry = new THREE.BufferGeometry();
+    linkGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linkVerts), 3));
+    linkGeometry.setAttribute('alpha', new THREE.BufferAttribute(new Float32Array(linkVerts.length / 3), 1));
+    linkGeometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(linkColors), 3));
+    this.add(new THREE.LineSegments(linkGeometry, new THREE.RawShaderMaterial({
+      uniforms: this.status.uniforms,
+      vertexShader: linkVertShader,
+      fragmentShader: linkFragShader,
+      glslVersion: THREE.GLSL3,
+      depthTest: false,
+      depthWrite: false,
+      blending: THREE.CustomBlending,
+      blendEquation: THREE.MaxEquation,
+      blendSrc: THREE.OneFactor,
+      blendDst: THREE.OneFactor
+    })));
+    this.linkGeometry = linkGeometry;
 
     this.status = {
       ...this.status,

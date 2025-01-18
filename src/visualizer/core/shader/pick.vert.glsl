@@ -9,14 +9,12 @@ uniform float scale;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
-out vec4 vColor;
-out float vAlpha;
+out float vIndex;
 
 void main() {
-    vColor = color;
-    vAlpha = alpha;
+    vIndex = color.a;
 
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    vec4 mvPosition = modelViewMatrix * vec4(position.xy, position.z * alpha * alpha, 1.0);
 
     gl_PointSize = position.z * min(scale, 20.0) * 3.0;
 
