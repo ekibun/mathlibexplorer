@@ -1,6 +1,6 @@
 {
   "name": "mathlibexplorer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "homepage": "mathlibexplorer",
   "dependencies": {
@@ -13,6 +13,7 @@
     "react-markdown": "^9.0.3",
     "react-router-dom": "^7.1.2",
     "react-scripts": "5.0.1",
+    "react-window": "^1.8.11",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "three": "^0.172.0",

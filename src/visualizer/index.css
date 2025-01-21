@@ -35,27 +35,66 @@ div.info {
 }
 
 div.infofunc {
-  color: white;
   font-size: larger;
 }
 a {
+  color: white;
   text-decoration:none
 }
 
 div.infocat {
   font-size: small;
   opacity: 0.6;
-  margin-bottom: 10px;
 }
 
 div.infomd {
+  margin-top: 10px;
   overflow: auto;
+}
+
+div.search {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: white;
+  background-color: #8888;
+  overflow: hidden;
+  margin: 10px;
+  border-radius: 10px;
+  font-family: Arial;
+  backdrop-filter: blur(20px);
+}
+div.searchbox {
+  padding: 10px;
+}
+input.searchbox {
+  position: absolute;
+  left: 30px;
+  right: 0px;
+}
+div.searchitem {
+  padding: 10px;
+  box-sizing: border-box;
+  user-select: none;
+  cursor: pointer;
+}
+div.searchitem:hover {
+  background-color: #fff4;
+}
+input {
+  color: white;
+  outline: none;
+  border: none;
+  background-color: transparent;
 }
 
 @media screen and (orientation: landscape) {
   div.infomd {
     max-height: 200px;
     max-width: 400px;
+  }
+  div.search {
+    width: 400px;
   }
 }
 
@@ -66,5 +105,8 @@ div.infomd {
   }
   div.infomd {
     max-height: 200px;
+  }
+  div.search {
+    left: 0;
   }
 }

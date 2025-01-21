@@ -31,6 +31,7 @@ export default class Visualizer {
   startRenderLoop() {
     const loop = () => {
       if (this._isDestroy) return;
+      if (this.animateCamera) this.animateCamera();
       this.resize();
       if(this.scene.graph.animate()) {
         this.scene._needRender = true;
@@ -76,6 +77,21 @@ export default class Visualizer {
     });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(container.clientWidth, container.clientHeight);
+  }
+
+  focusNode(node) {
+    this.toggleHit(node);
+    const begin = Date.now();
+    this.animateCamera = () => {
+      const delta = Math.min(1, (Date.now() - begin) / 500);
+      this.scene.updateStatus({
+        camera: {
+          x: this.scene.camera.status.x * (1 - delta) + delta * node.x,
+          y: this.scene.camera.status.y * (1 - delta) + delta * node.y
+        }
+      });
+      if (delta === 1) this.animateCamera = undefined;
+    };
   }
 
   render() {

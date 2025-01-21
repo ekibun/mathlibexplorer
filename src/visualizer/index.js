@@ -3,22 +3,22 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Visualizer, { tree } from './core/visualizer';
-import { AiOutlineLink } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlineLink } from "react-icons/ai";
 import Markdown from 'react-markdown';
-import 'katex/dist/katex.min.css'
+import { FixedSizeList } from 'react-window';
 
 function getPickInfo(state) {
   const pick = state.graph?.pick;
-  if(!pick) return;
-  if(Array.isArray(pick) && pick.length > 0) {
+  if (!pick) return;
+  if (Array.isArray(pick) && pick.length > 0) {
     const node = state.graph.nodes[pick[0]]
     return {
       name: node.cat || node.name,
       cat: `${pick.length} elems`,
-      path: node.path.split("/").slice(0,2).join("/")
+      path: node.path.split("/").slice(0, 2).join("/")
     }
   }
-  if(pick.name) {
+  if (pick.name) {
     return {
       ...pick,
       cat: `${pick.cat} | ${pick.from.length} ref | ${pick.to.length} use`
@@ -28,6 +28,9 @@ function getPickInfo(state) {
 
 export default () => {
   const [state, setState] = useState({});
+  const [search, setSearch] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+
   /** @type { MutableRefObject<HTMLCanvasElement> } */ const canvas = useRef();
   /** @type { MutableRefObject<Visualizer> } */ const visualizer = useRef();
   useEffect(() => {
@@ -78,6 +81,13 @@ export default () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visualizer.current, state]);
 
+  const nodes = state?.graph?.nodes ?? [];
+  const searchItems = useMemo(() => {
+    if (!search || !nodes || !nodes.length) return [];
+    const searchValue = search.toLowerCase()
+    return nodes.filter((v) => `${v.cat}.${v.name}`?.toLowerCase().includes(searchValue));
+  }, [nodes, search]);
+
   return (
     <>
       <canvas
@@ -93,6 +103,7 @@ export default () => {
           'onTouchEnd'
         ].map((key) => ({
           [key]: (event) => {
+            setShowSearch(false);
             const current = visualizer.current;
             if (current && current[key]) return current[key](event);
           },
@@ -148,6 +159,39 @@ export default () => {
           </div>
         )
       }
+      <div className='search'>
+        <div className='searchbox'>
+          <AiOutlineSearch />
+          <input className='searchbox' value={search}
+            onFocus={() => {
+              setShowSearch(true);
+            }}
+            onChange={(e) => {
+              setShowSearch(true);
+              setSearch(e.target.value);
+            }} />
+        </div>
+        <FixedSizeList
+          style={{
+            display: showSearch ? 'inherit' : 'none'
+          }}
+          height={Math.min((searchItems?.length || 0) * 50, 200)}
+          itemSize={50}
+          itemCount={searchItems?.length || 0}
+        >
+          {({ index, style }) => (
+            <div className='searchitem'
+              onClick={() => {
+                const current = visualizer.current;
+                current?.focusNode(searchItems[index]);
+              }}
+              style={style}>
+              <div>{searchItems[index]?.name}</div>
+              <div className='infocat'>{searchItems[index]?.cat}</div>
+            </div>
+          )}
+        </FixedSizeList>
+      </div>
     </>
   );
 };
