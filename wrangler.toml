@@ -1,6 +1,6 @@
 main = ".open-next/worker.js"
 name = "mathlibexplorer"
-pages_build_output_directory = "build"
+pages_build_output_dir = "build"
 compatibility_date = "2025-01-24"
 compatibility_flags = ["nodejs_compat"]
 assets = { directory = "build/static", binding = "ASSETS" }

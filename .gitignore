@@ -24,5 +24,6 @@ yarn-error.log*
 
 /data/graph.gexf
 
-# package-lock.json
+# package locks
 package-lock.json
+yarn.lock
