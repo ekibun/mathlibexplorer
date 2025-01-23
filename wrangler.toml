@@ -1,4 +1,3 @@
-main = ".open-next/worker.js"
 name = "mathlibexplorer"
 pages_build_output_dir = "build"
 compatibility_date = "2025-01-24"
