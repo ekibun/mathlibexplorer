@@ -138,11 +138,11 @@ export default class GraphGroup extends THREE.Group {
     for (var i = 0; i < nodeCount; ++i) {
       const [name, color, x, y, size] = lines[i + 1].split(' ');
       const relate = lines[nodeCount + i + 1].trim().split(' ').map(Number);
-      if (relate[0] != i || relate[1] + 2 != relate.length) throw "data assert failed";
+      if (relate[0] !== i || relate[1] + 2 !== relate.length) throw new Error("data assert failed");
       for (var j = 0; j < relate[1]; ++j) {
         links.push([i, relate[2 + j]]);
       }
-      const [_, cat, ...func] = name.split('.');
+      const [, cat, ...func] = name.split('.');
       if (!cats[cat]) cats[cat] = {
         nodes: [],
         sumsize: 0,

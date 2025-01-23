@@ -26,7 +26,7 @@ function getPickInfo(state) {
   }
 }
 
-export default () => {
+export default function GraphVisualizer() {
   const [state, setState] = useState({});
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -57,9 +57,9 @@ export default () => {
       const cats = state.graph.cats;
       return {
         labels: setArray.map((v) => {
-          if (!v) return;
+          if (!v) return undefined;
           const pos = visualizerCurrent.scene.camera.project([v.x, v.y, 0]);
-          if (pos[0] < 0 || pos[1] < 0 || pos[0] > state.camera.width || pos[1] > state.camera.height) return;
+          if (pos[0] < 0 || pos[1] < 0 || pos[0] > state.camera.width || pos[1] > state.camera.height) return undefined;
           return {
             cat: v.cat,
             name: v.name,
@@ -68,12 +68,13 @@ export default () => {
         }).filter(v => v),
         cats: Object.keys(cats ?? {}).map((key) => {
           const cat = cats[key];
+          if (!cat) return undefined;
           return {
             name: key,
             nodes: cat.nodes,
             pos: visualizerCurrent.scene.camera.project([cat.sumx / cat.sumsize, cat.sumy / cat.sumsize, 0])
           }
-        }),
+        }).filter(v => v),
         pick: getPickInfo(state)
       }
     }
@@ -81,7 +82,7 @@ export default () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visualizer.current, state]);
 
-  const nodes = state?.graph?.nodes ?? [];
+  const nodes = useMemo(() => state?.graph?.nodes ?? [], [state?.graph?.nodes]);
   const searchItems = useMemo(() => {
     if (!search || !nodes || !nodes.length) return [];
     const searchValue = search.toLowerCase()
@@ -147,7 +148,7 @@ export default () => {
       {
         pick && (
           <div className='info'>
-            <a href={`https://github.com/leanprover-community/mathlib4/blob/${tree}/${pick.path}`} target='_blank'>
+            <a href={`https://github.com/leanprover-community/mathlib4/blob/${tree}/${pick.path}`} target='_blank' rel='noreferrer'>
               <div className='infofunc'><AiOutlineLink />{pick.name}</div>
             </a>
             <div className='infocat'>{pick.cat}</div>
