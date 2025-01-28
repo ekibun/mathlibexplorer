@@ -1,6 +1,6 @@
 import Visualizer from '../visualizer';
 
-export default () => {
+export default function Index() {
   return (
     <div
       style={{

@@ -4,7 +4,7 @@ import Scene from './scene';
 export const tree = 'eec581e576bee4a9c19a608976f8a1e87c5b6ed5';
 
 function getDoc(code) {
-  const regex = /(-\/|\/-[\-!]?)/g;
+  const regex = /(-\/|\/-[-!]?)/g;
   let depth = 0;
   let lastBegin = -1;
   let match;
@@ -18,7 +18,7 @@ function getDoc(code) {
         break;
       default:
         if(depth === 0){
-          lastBegin = match[0] == '/-!' ? match.index + match[0].length : -1;
+          lastBegin = match[0] === '/-!' ? match.index + match[0].length : -1;
         }
         depth +=1;
         break;
@@ -141,6 +141,8 @@ export default class Visualizer {
         this.scene.graph.setAlpha(
           this.scene.graph.getRelates(isArray ? newHit : [newHit.index], true, false, !isArray));
         break;
+      default:
+        throw new Error("invalid mode for hit info " + this.hitInfo.mode);
     }
     this.scene.updateStatus({ graph: { pick: this.hitInfo.mode ? newHit : undefined } });
   }
@@ -160,7 +162,7 @@ export default class Visualizer {
     event.preventDefault();
     const dx = event.movementX;
     const dy = event.movementY;
-    const isPrimary = (event.pointerType === 'mouse' && event.buttons == 1) || (event.pointerType === 'touch' && event.isPrimary);
+    const isPrimary = (event.pointerType === 'mouse' && event.buttons === 1) || (event.pointerType === 'touch' && event.isPrimary);
     if (isPrimary) {
       let { x, y, scale } = this.scene.camera.status;
       this.scene.updateStatus({ camera: { x: x - dx / scale, y: y + dy / scale } });

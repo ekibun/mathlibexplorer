@@ -37,6 +37,7 @@ div.info {
 div.infofunc {
   font-size: larger;
 }
+
 a {
   color: white;
   text-decoration:none
@@ -91,7 +92,7 @@ input {
 @media screen and (orientation: landscape) {
   div.infomd {
     max-height: 200px;
-    max-width: 400px;
+    max-width: 800px;
   }
   div.search {
     width: 400px;
